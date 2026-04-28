@@ -20,9 +20,9 @@ public class FilterTests
         var publisher = new Publisher { Id = Guid.NewGuid(), Name = "Penguin" };
 
         context.Books.AddRange(
-            new Book { Id = Guid.NewGuid(), Title = "The Odyssey", Pages = 541, ReleaseDate = null, Author = author, Genre = genre, Publisher = publisher },
-            new Book { Id = Guid.NewGuid(), Title = "The Iliad", Pages = 683, ReleaseDate = null, Author = author, Genre = genre, Publisher = publisher },
-            new Book { Id = Guid.NewGuid(), Title = "Moby Dick", Pages = 720, ReleaseDate = new DateTime(1851, 1, 1), Author = new Author { Id = Guid.NewGuid(), Name = "Melville" }, Genre = new Genre { Id = Guid.NewGuid(), Name = "Adventure" }, Publisher = publisher }
+            new Book { Id = Guid.NewGuid(), Title = "The Odyssey", Pages = 541, ReleaseDate = null, Author = author, Genre = genre, Publishers = [publisher] },
+            new Book { Id = Guid.NewGuid(), Title = "The Iliad", Pages = 683, ReleaseDate = null, Author = author, Genre = genre, Publishers = [publisher] },
+            new Book { Id = Guid.NewGuid(), Title = "Moby Dick", Pages = 720, ReleaseDate = new DateTime(1851, 1, 1), Author = new Author { Id = Guid.NewGuid(), Name = "Melville" }, Genre = new Genre { Id = Guid.NewGuid(), Name = "Adventure" }, Publishers = [publisher] }
         );
         context.SaveChanges();
         return context;

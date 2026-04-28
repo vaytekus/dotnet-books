@@ -16,7 +16,7 @@ namespace Books.Application.Services
             var query = _context.Books
                 .Include(x => x.Author)
                 .Include(x => x.Genre)
-                .Include(x => x.Publisher)
+                .Include(x => x.Publishers)
                 .AsQueryable();
             
             if (!string.IsNullOrWhiteSpace(filter.Title))
@@ -29,7 +29,7 @@ namespace Books.Application.Services
                 query = query.Where(b => b.Genre.Name.Contains(filter.Genre));
 
             if (!string.IsNullOrWhiteSpace(filter.Publisher))
-                query = query.Where(b => b.Publisher.Name.Contains(filter.Publisher));
+                query = query.Where(b => b.Publishers.Any(p => p.Name.Contains(filter.Publisher)));
 
             if (filter.MoreThanPages.HasValue)
                 query = query.Where(b => b.Pages >= filter.MoreThanPages.Value);

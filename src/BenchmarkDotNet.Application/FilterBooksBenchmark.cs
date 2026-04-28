@@ -100,11 +100,11 @@ public class FilterBooksBenchmark
             {
                 Id = Guid.NewGuid(),
                 Title = $"{titles[i % titles.Length]} {i}",
-                Pages = rng.Next(50, 1000),
+                Pages = (short)rng.Next(50, 1000),
                 ReleaseDate = new DateTime(rng.Next(1950, 2024), rng.Next(1, 13), 1),
                 GenreId = genres[i % genres.Length].Id,
                 AuthorId = authors[i % authors.Length].Id,
-                PublisherId = publishers[i % publishers.Length].Id,
+                Publishers = [publishers[i % publishers.Length]],
             });
         }
 

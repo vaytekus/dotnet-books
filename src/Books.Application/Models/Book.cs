@@ -1,12 +1,17 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace Books.Application.Models
 {
     public class Book
     {
         public Guid Id { get; set; }
         
+        [MaxLength(200)]
         public string Title { get; set; } = string.Empty;
 
-        public int Pages { get; set; }
+        [Column(TypeName = "smallint")]
+        public short Pages { get; set; }
         
         public DateTime? ReleaseDate { get; set; }
         
@@ -14,12 +19,10 @@ namespace Books.Application.Models
 
         public Guid AuthorId { get; set; }
 
-        public Guid PublisherId { get; set; }
-        
         public virtual Author Author { get; set; } = null!;
-        
+
         public virtual Genre Genre { get; set; } = null!;
-        
-        public virtual Publisher Publisher { get; set; } = null!;
+
+        public virtual ICollection<Publisher> Publishers { get; set; } = new List<Publisher>();
     }
 }

@@ -5,6 +5,7 @@ using Books.Application.Mappings;
 using Books.Application.Models;
 using CsvHelper;
 using CsvHelper.Configuration;
+using Microsoft.EntityFrameworkCore;
 
 namespace Books.Application.Services
 {
@@ -29,36 +30,46 @@ namespace Books.Application.Services
 
             foreach (var row in records)
             {
-                var author = _context.Authors.FirstOrDefault(a => a.Name == row.Author)
+                var author = _context.Authors.Local.FirstOrDefault(a => a.Name == row.Author)
+                             ?? _context.Authors.FirstOrDefault(a => a.Name == row.Author)
                              ?? new Author { Id = Guid.NewGuid(), Name = row.Author };
-                if (_context.Entry(author).State == Microsoft.EntityFrameworkCore.EntityState.Detached)
+                if (_context.Entry(author).State == EntityState.Detached)
                     _context.Authors.Add(author);
 
-                var genre = _context.Genres.FirstOrDefault(g => g.Name == row.Genre)
+                var genre = _context.Genres.Local.FirstOrDefault(g => g.Name == row.Genre)
+                            ?? _context.Genres.FirstOrDefault(g => g.Name == row.Genre)
                             ?? new Genre { Id = Guid.NewGuid(), Name = row.Genre };
-                if (_context.Entry(genre).State == Microsoft.EntityFrameworkCore.EntityState.Detached)
+                if (_context.Entry(genre).State == EntityState.Detached)
                     _context.Genres.Add(genre);
 
-                var publisher = _context.Publishers.FirstOrDefault(p => p.Name == row.FullPublisherName)
+                var publisher = _context.Publishers.Local.FirstOrDefault(p => p.Name == row.FullPublisherName)
+                                ?? _context.Publishers.FirstOrDefault(p => p.Name == row.FullPublisherName)
                                 ?? new Publisher { Id = Guid.NewGuid(), Name = row.FullPublisherName };
-                if (_context.Entry(publisher).State == Microsoft.EntityFrameworkCore.EntityState.Detached)
+                if (_context.Entry(publisher).State == EntityState.Detached)
                     _context.Publishers.Add(publisher);
 
-                var exists = _context.Books.Any(b => b.Title == row.Title && b.Author == author);
-                if (!exists)
+                var book = _context.Books.Local
+                               .FirstOrDefault(b => b.Title == row.Title && b.AuthorId == author.Id)
+                           ?? _context.Books
+                               .Include(b => b.Publishers)
+                               .FirstOrDefault(b => b.Title == row.Title && b.AuthorId == author.Id);
+
+                if (book == null)
                 {
-                    var book = new Book
+                    book = new Book
                     {
                         Id = Guid.NewGuid(),
                         Title = row.Title,
-                        Pages = row.Pages,
+                        Pages = (short)row.Pages,
                         ReleaseDate = DateTime.TryParse(row.ReleaseDate, out var date) ? date : null,
                         Author = author,
                         Genre = genre,
-                        Publisher = publisher
                     };
                     _context.Books.Add(book);
                 }
+
+                if (!book.Publishers.Any(p => p.Name == publisher.Name))
+                    book.Publishers.Add(publisher);
             }
 
             _context.SaveChanges();
