@@ -5,7 +5,9 @@ namespace Books.Application.Data
 {
     public class AppDbContext : DbContext
     {
-        private const string DbFileName = "books.db";
+        private const string ConnectionString =
+            "Server=localhost;Database=BooksDb;User Id=sa;Password=Password12345;TrustServerCertificate=True;";
+
         public AppDbContext() { }
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -17,9 +19,7 @@ namespace Books.Application.Data
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (optionsBuilder.IsConfigured) return;
-            var projectRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", ".."));
-            var dbPath = Path.Combine(projectRoot, DbFileName);
-            optionsBuilder.UseSqlite($"Data Source={dbPath}");
+            optionsBuilder.UseSqlServer(ConnectionString);
         }
     }
 }

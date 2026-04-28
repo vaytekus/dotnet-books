@@ -3,7 +3,6 @@ using Books.Application.Data;
 using Books.Application.Filters;
 using Books.Application.Models;
 using Books.Application.Services;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
 namespace BenchmarkDotNet.Application;
@@ -12,7 +11,6 @@ namespace BenchmarkDotNet.Application;
 [SimpleJob]
 public class FilterBooksBenchmark
 {
-    private SqliteConnection _connection = null!;
     private AppDbContext _context = null!;
     private BookFilterService _filter = null!;
 
@@ -27,28 +25,17 @@ public class FilterBooksBenchmark
     [GlobalSetup]
     public void Setup()
     {
-        // Keep connection open so the in-memory database persists across EF Core's internal open/close cycles
-        _connection = new SqliteConnection("Data Source=:memory:");
-        _connection.Open();
-
         var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseSqlite(_connection)
+            .UseInMemoryDatabase("BenchmarkDb")
             .Options;
 
         _context = new AppDbContext(options);
-        _context.Database.EnsureCreated();
-
         SeedData(_context);
-
         _filter = new BookFilterService(_context);
     }
 
     [GlobalCleanup]
-    public void Cleanup()
-    {
-        _context.Dispose();
-        _connection.Dispose();
-    }
+    public void Cleanup() => _context.Dispose();
 
     [Benchmark(Baseline = true, Description = "No filter (all books)")]
     public int NoFilter() => _filter.FilterBooks(_noFilter).Count;
