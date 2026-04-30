@@ -6,13 +6,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Books.Application.Core
 {
-    public class FilterBookProcess(string inputCsvPath, string inputFilterFile, string outputPath, DbContextOptions<AppDbContext> dbOptions)
+    public class FilterBookProcess(AppDbContext dbContext)
     {
-        public void Process()
+        public void Process(string inputCsvPath, string inputFilterFile, string outputPath)
         {
-            var context = new AppDbContext(dbOptions);
-            context.Database.Migrate();
-            var importer = new DataImporter(context);
+            dbContext.Database.Migrate();
+            var importer = new DataImporter(dbContext);
             importer.ImportFromCsv(inputCsvPath);
             
             string jsonString = File.ReadAllText(inputFilterFile);
@@ -21,7 +20,7 @@ namespace Books.Application.Core
                 PropertyNameCaseInsensitive = true
             }) ?? new BookFilterDto();
 
-            var filter = new BookFilterService(context);
+            var filter = new BookFilterService(dbContext);
             var result = filter.FilterBooks(filterFile);
             
             using var writer = new StreamWriter(outputPath, false, System.Text.Encoding.UTF8);

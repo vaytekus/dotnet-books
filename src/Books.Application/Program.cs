@@ -1,7 +1,9 @@
 ﻿using Books.Application.Core;
 using Books.Application.Data;
+using Books.Application.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Books.Application;
 
@@ -10,19 +12,15 @@ class Program
 
     static void Main(string[] args)
     {
-        string? env = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Development";
-
-        IConfiguration config = new ConfigurationBuilder()
-        .SetBasePath(Directory.GetCurrentDirectory())
-        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-        .AddJsonFile($"appsettings.{env}.json", optional: true, reloadOnChange: true)
-        .AddEnvironmentVariables()
-        .Build();
+        var config = ConfigurationHelper.Build();
 
         string connectionString = config.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found in appsettings.json");
-        var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
-        optionsBuilder.UseSqlServer(connectionString);
+
+        var services = new ServiceCollection();
+        services.AddDbContext<AppDbContext>(opt => opt.UseSqlServer(connectionString));
+        services.AddScoped<FilterBookProcess>();
+        var provider = services.BuildServiceProvider();
         
         Console.WriteLine("Enter file name:");
         string? fileName = Console.ReadLine();
@@ -51,6 +49,8 @@ class Program
         
         string outputPath = Path.Combine(documentsPath, $"output_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.txt");
 
-        new FilterBookProcess(pathToCsvFile, pathToFilterFile, outputPath, optionsBuilder.Options).Process();
+        using var scope = provider.CreateScope();
+        var process = scope.ServiceProvider.GetRequiredService<FilterBookProcess>();
+        process.Process(pathToCsvFile, pathToFilterFile, outputPath);
     }
 }
