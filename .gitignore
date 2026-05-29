@@ -4,3 +4,9 @@
 # Build results
 [Bb]in/
 [Oo]bj/
+
+# SQLite databases
+*.db
+
+# Local configuration with credentials
+appsettings.Development.json
